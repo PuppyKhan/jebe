@@ -84,20 +84,13 @@ func (h *BinaryHeap) MaxHeapify(i uint) {
 	l := Left(i)
 	r := Right(i)
 	largest := i
-	// fmt.Println("[MaxHeapify] i:", i)
-	// fmt.Println("[MaxHeapify] l:", l)
-	// fmt.Println("[MaxHeapify] r:", r)
-	// fmt.Println("[MaxHeapify] largest (init):", largest)
 	if l < h.Size() && h.greater(h.array[l], h.array[i]) {
 		largest = l
 	}
-	// fmt.Println("[MaxHeapify] largest (vs l):", largest)
 	if r < h.Size() && h.greater(h.array[r], h.array[largest]) {
 		largest = r
 	}
-	// fmt.Println("[MaxHeapify] largest (vs r):", largest)
 	if largest != i {
-		// fmt.Println("[MaxHeapify]", largest, "(largest) !=", i, "(i)")
 		h.SwapHeapItem(i, largest)
 		h.MaxHeapify(largest) // TODO: loop instead of recursion
 	}
@@ -106,11 +99,9 @@ func (h *BinaryHeap) MaxHeapify(i uint) {
 // BuildMaxHeap - convert unsorted array into Max Heap
 func (h *BinaryHeap) BuildMaxHeap() {
 	length := h.Size()
-	// fmt.Println("[BuildMaxHeap] length:", length)
 	for i := (length / 2); i > 0; i-- {
 		// i is 1 based index here to avoid wraparound of uint to uint_max
-		// fmt.Println("[BuildMaxHeap] i:", i-1)
-		h.MaxHeapify(i - 1)
+		h.MaxHeapify(i - 1) // so adjust to 0 based when used
 	}
 }
 
@@ -130,7 +121,7 @@ func (h *BinaryHeap) Sort(array []Item, gt PrioritizeHeapItem) []Item {
 	h.BuildMaxHeap()
 	for i := h.Size(); i > 1; i-- {
 		// i is 1 based index here to avoid wraparound of uint to uint_max
-		h.SwapHeapItem(0, i-1)
+		h.SwapHeapItem(0, i-1) // so adjust to 0 based when used
 		h.logicalSize--
 		h.MaxHeapify(0)
 	}
@@ -141,18 +132,12 @@ func (h *BinaryHeap) Sort(array []Item, gt PrioritizeHeapItem) []Item {
 
 // Insert - add new item to heap, grow if necessary
 func (h *BinaryHeap) Insert(key Item) {
-	// fmt.Println("[Insert] h.logicalSize:", h.logicalSize)
-	// fmt.Println("[Insert] h.Size():", h.Size())
-	// fmt.Println("[Insert] h.ArraySize():", h.ArraySize())
 	if h.Size() < h.ArraySize() {
 		h.array[h.logicalSize] = nil
 		h.logicalSize++
-		// fmt.Println("[Insert] h.logicalSize:", h.logicalSize)
 	} else {
 		h.SetArray(append(h.array, nil))
-		// fmt.Println("[Insert] h.Size():", h.Size())
 	}
-	// fmt.Println("[Insert] h.logicalSize:", h.logicalSize)
 	h.ReplaceItem(h.logicalSize-1, key)
 }
 
@@ -189,13 +174,11 @@ func (h *BinaryHeap) Pop() Item {
 
 // ReplaceItem - (instead of IncreaseKey)
 func (h *BinaryHeap) ReplaceItem(i uint, key Item) {
-	// fmt.Println("[ReplaceItem] i:", i)
 	if i >= h.Size() { // ArraySize() instead?
 		return
 	}
 	h.array[i] = key
 	for n, err := i, error(nil); err == nil && n >= 0; n, err = Parent(n) {
-		// fmt.Println("[ReplaceItem] n:", n)
 		h.MaxHeapify(n)
 	}
 }

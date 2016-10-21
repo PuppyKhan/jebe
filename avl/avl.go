@@ -113,9 +113,7 @@ func (t *BinaryTree) Insert(newValue Item) {
 
 // InsertRecursive a new Item to a tree
 func (t *BinaryTree) InsertRecursive(branchRoot, newValue *Node) *Node {
-	// x := branchRoot
 	if branchRoot == nil {
-		// branchRoot = newValue
 		return newValue
 	} else if t.lesser(newValue.value, branchRoot.value) {
 		if branchRoot.left == nil {
@@ -304,9 +302,6 @@ func IsBalanced(n *Node) int {
 		return 0
 	}
 	bal := GetHeight(n.left) - GetHeight(n.right)
-	// if bal > 1 || bal < -1 {
-	// 	return bal
-	// }
 	if bal > 1 {
 		return 1
 	} else if bal < -1 {

@@ -103,9 +103,7 @@ func (t *BinaryTree) Insert(newValue Item) {
 
 // InsertRecursive a new Item to a tree
 func (t *BinaryTree) InsertRecursive(branchRoot, newValue *Node) *Node {
-	// x := branchRoot
 	if branchRoot == nil {
-		// branchRoot = newValue
 		return newValue
 	} else if t.lesser(newValue.value, branchRoot.value) {
 		if branchRoot.left == nil {

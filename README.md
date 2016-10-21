@@ -1,9 +1,13 @@
+# Jebe
+
 Implementing a couple of algorithms in Go for fun
 
 Each acts upon "type Item interface{}" for value and needs custom defined comparison functions so they work for any data, not just int.
 
-Heap
-====
+## Packages
+
+### Heap
+
 HeapSort: Sort underlying array in place using HeapSort algorithm
 
 Can be used as a max, min or custom priority heap by setting the comparison with a custom PrioritizeHeapItem(), with Push/Pop aliases
@@ -11,15 +15,37 @@ Can be used as a max, min or custom priority heap by setting the comparison with
 
 Satifies sort.Interface
 
+```golang
+import "github.com/PuppyKhan/jebe/heap"
+```
+
 Follows pseudocode from "Introduction to Algorithms" by Cormen, Leiserson, Rivest, Stein
 
-BST
-===
+### BST
+
 Binary Search Tree, order can be custom defined
 
+```golang
+import "github.com/PuppyKhan/jebe/bst"
+```
+
 Follows pseudocode from "Introduction to Algorithms" by Cormen, Leiserson, Rivest, Stein
 
-AVL
-===
+### AVL
+
 AVL Sort using balanced Binary Search Tree
 (unfinished)
+
+```golang
+import "github.com/PuppyKhan/jebe/avl"
+```
+
+## Jebe meaning
+
+Jebe is the name of one of Chinggis Khaan's greatest warriors, whose name means "weapon" - though probably something more specific like a particular type of arrowhead.
+
+These are a good collection of arrows to have in your quiver.
+
+## Author
+
+Luigi Kapaj <puppy at viahistoria.com>
