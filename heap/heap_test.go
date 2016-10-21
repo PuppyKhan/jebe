@@ -77,3 +77,74 @@ func TestHeapSort(t *testing.T) {
 		}
 	}
 }
+
+func TestPriorityQ(t *testing.T) {
+	tests := []struct {
+		givenArray        []Item
+		givenPriorityFunc func(a, b Item) bool
+
+		wantPrioritized []Item
+		wantOutput      []Item
+	}{
+		{
+			[]Item{},
+			nil,
+
+			[]Item{},
+			[]Item{},
+		},
+		{
+			[]Item{8},
+			nil,
+
+			[]Item{8},
+			[]Item{8},
+		},
+		{
+			[]Item{8, 7, 22, 23, 11},
+			func(a, b Item) bool {
+				return a.(int) > b.(int)
+			},
+
+			[]Item{8, 8, 22, 23, 23},
+			[]Item{23, 22, 11, 8, 7},
+		},
+		{
+			[]Item{8, 7, 22, 23, 11},
+			func(a, b Item) bool {
+				return a.(int) < b.(int)
+			},
+
+			[]Item{8, 7, 7, 7, 7},
+			[]Item{7, 8, 11, 22, 23},
+		},
+	}
+
+	for i, test := range tests {
+		var secHeap BinaryHeap
+		secArray := make([]Item, 0, 10)
+		secHeap.SetArray(secArray)
+
+		if test.givenPriorityFunc == nil {
+			secHeap.SetGTIntPrioritizeHeapItem()
+		} else {
+			secHeap.SetPrioritizeHeapItem(test.givenPriorityFunc)
+		}
+
+		// fill up q, checking priority
+		for n, l := 0, len(test.givenArray); n < l; n++ {
+			secHeap.Push(test.givenArray[n])
+			if secHeap.Peek() != test.wantPrioritized[n] {
+				t.Errorf("%d.%d: Invalid order, found: %d, expected: %d", i, n, secHeap.Peek(), test.wantPrioritized[n])
+			}
+		}
+
+		// dump q, checking priority
+		for n, l := 0, len(test.givenArray); n < l; n++ {
+			m := secHeap.Pop()
+			if m != test.wantOutput[n] {
+				t.Errorf("%d.%d: Invalid order, found: %d, expected: %d", i, n, m, test.wantOutput[n])
+			}
+		}
+	}
+}

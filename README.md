@@ -2,7 +2,7 @@
 
 Implementing a couple of algorithms in Go for fun
 
-Each acts upon "type Item interface{}" for value and needs custom defined comparison functions so they work for any data, not just int.
+Each acts upon `type Item interface{}` for value and needs custom defined comparison functions so they work for any data, not just int.
 
 ## Packages
 
@@ -15,7 +15,7 @@ Can be used as a max, min or custom priority heap by setting the comparison with
 
 Satifies sort.Interface
 
-```golang
+```go
 import "github.com/PuppyKhan/jebe/heap"
 ```
 
@@ -25,7 +25,7 @@ Follows pseudocode from "Introduction to Algorithms" by Cormen, Leiserson, Rives
 
 Binary Search Tree, order can be custom defined
 
-```golang
+```go
 import "github.com/PuppyKhan/jebe/bst"
 ```
 
@@ -36,7 +36,7 @@ Follows pseudocode from "Introduction to Algorithms" by Cormen, Leiserson, Rives
 AVL Sort using balanced Binary Search Tree
 (unfinished)
 
-```golang
+```go
 import "github.com/PuppyKhan/jebe/avl"
 ```
 
@@ -44,7 +44,9 @@ import "github.com/PuppyKhan/jebe/avl"
 
 Jebe is the name of one of Chinggis Khaan's greatest warriors, whose name means "weapon" - though probably something more specific like a particular type of arrowhead.
 
-These are a good collection of arrows to have in your quiver.
+This offers a wonderful tagline:
+
+_These are a good collection of arrows to have in your quiver._
 
 ## Author
 
