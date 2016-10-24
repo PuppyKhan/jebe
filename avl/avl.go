@@ -189,6 +189,9 @@ func (t BinaryTree) SearchRecursive(k Item, current *Node) *Node {
 // Search to find node with Item in current branch or nil if none
 func (t BinaryTree) Search(k Item, current *Node) *Node {
 	x := current
+	if x == nil {
+		x = t.root
+	}
 	kval := k
 	for x != nil && !t.equals(x.value, kval) {
 		if t.lesser(kval, x.value) {
@@ -267,8 +270,11 @@ func (t *BinaryTree) Transplant(u, v *Node) {
 	}
 }
 
-// Delete removes a node and adjust tree accordingly
+// Delete removes a node and adjusts tree accordingly
 func (t *BinaryTree) Delete(z *Node) {
+	if z == nil {
+		return
+	}
 	if z.left == nil {
 		t.Transplant(z, z.right)
 	} else if z.right == nil {

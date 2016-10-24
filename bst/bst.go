@@ -40,8 +40,6 @@ func MakeNode(val Item, p *Node) *Node {
 
 // Init sets both root node and comparison func
 func (t *BinaryTree) Init(root Item, a PrioritizeTreeItem, b EquivalenceTreeItem) {
-	// t.root = t.Add(root)
-	t.Insert(root)
 	if a == nil {
 		t.SetLTIntPrioritizeTreeItem()
 	} else {
@@ -52,6 +50,9 @@ func (t *BinaryTree) Init(root Item, a PrioritizeTreeItem, b EquivalenceTreeItem
 	} else {
 		t.SetEquivalenceTreeItem(b)
 	}
+
+	// Insert() uses lesser() methods, so SetPrioritizeTreeItem() must run first
+	t.Insert(root)
 }
 
 // SetPrioritizeTreeItem - "a < b" or whatever comparison is needed
@@ -154,6 +155,7 @@ func (t BinaryTree) InOrderTreeWalk(n *Node, c chan Item) {
 
 // InOrderTreeWalkRecursive does left, current, right
 //  closes channel when done
+//  doesn't close channel if called on nil branch
 func (t BinaryTree) InOrderTreeWalkRecursive(n *Node, c chan Item) {
 	if n != nil {
 		t.InOrderTreeWalkRecursive(n.left, c)
@@ -179,6 +181,9 @@ func (t BinaryTree) SearchRecursive(k Item, current *Node) *Node {
 // Search to find node with Item in current branch or nil if none
 func (t BinaryTree) Search(k Item, current *Node) *Node {
 	x := current
+	if x == nil {
+		x = t.root
+	}
 	kval := k
 	for x != nil && !t.equals(x.value, kval) {
 		if t.lesser(kval, x.value) {
@@ -257,8 +262,11 @@ func (t *BinaryTree) Transplant(u, v *Node) {
 	}
 }
 
-// Delete removes a node and adjust tree accordingly
+// Delete removes a node and adjusts tree accordingly
 func (t *BinaryTree) Delete(z *Node) {
+	if z == nil {
+		return
+	}
 	if z.left == nil {
 		t.Transplant(z, z.right)
 	} else if z.right == nil {

@@ -11,9 +11,9 @@ Each acts upon `type Item interface{}` for value and needs custom defined compar
 HeapSort: Sort underlying array in place using HeapSort algorithm
 
 Can be used as a max, min or custom priority heap by setting the comparison with a custom PrioritizeHeapItem(), with Push/Pop aliases
-- Push could dynamically grow heap, thus needing a copy operation
+- Push() could dynamically grow heap, thus needing a copy operation so original may not be sorted
 
-Satifies sort.Interface
+Satisfies sort.Interface
 
 ```go
 import "github.com/PuppyKhan/jebe/heap"
@@ -23,7 +23,12 @@ Follows pseudocode from "Introduction to Algorithms" by Cormen, Leiserson, Rives
 
 ### BST
 
-Binary Search Tree, order can be custom defined
+Binary Search Tree, order can be custom defined.
+
+Both recursive and nonrecursive methods given as n excercise, use the nonrecursive in practice. Use:
+- `Insert()` instead of `InsertRecursive()`
+- `InOrderTreeWalk()` instead of `InOrderTreeWalkRecursive()`
+- `Search()` instead of `SearchRecursive()`
 
 ```go
 import "github.com/PuppyKhan/jebe/bst"
