@@ -104,14 +104,20 @@ func (t *BinaryTree) Insert(newValue Item) {
 
 	// update heights for AVL property
 	// TODO: entirely contain w fir property in seperate method?
-	// y starts as z's parent here from last step
+	// y starts as z's parent here from previous step
 	for h := z.height; y != nil; y = y.parent {
 		h++
-		y.height = h
+		if y.height < h {
+			y.height = h
+		}
 	}
+
+	// now fix AVL property on inserted node & upwards
+	RestoreAVLPropertyTree(z)
 }
 
 // InsertRecursive a new Item to a tree
+//  call RestoreAVLProperty(branchRoot) afterwards
 func (t *BinaryTree) InsertRecursive(branchRoot, newValue *Node) *Node {
 	if branchRoot == nil {
 		return newValue
@@ -122,6 +128,11 @@ func (t *BinaryTree) InsertRecursive(branchRoot, newValue *Node) *Node {
 		} else {
 			t.InsertRecursive(branchRoot.left, newValue)
 		}
+		// update heights for AVL property
+		if branchRoot.left.height >= branchRoot.height {
+			branchRoot.height = branchRoot.left.height + 1
+		}
+		branchRoot.left = RestoreAVLProperty(branchRoot.left) // correct level?
 		return branchRoot.left.parent
 	} else {
 		if branchRoot.right == nil {
@@ -130,6 +141,11 @@ func (t *BinaryTree) InsertRecursive(branchRoot, newValue *Node) *Node {
 		} else {
 			t.InsertRecursive(branchRoot.right, newValue)
 		}
+		// update heights for AVL property
+		if branchRoot.right.height >= branchRoot.height {
+			branchRoot.height = branchRoot.right.height + 1
+		}
+		branchRoot.right = RestoreAVLProperty(branchRoot.right) // correct level?
 		return branchRoot.right.parent
 	}
 }
@@ -300,22 +316,129 @@ func GetHeight(n *Node) int {
 	return n.height
 }
 
-// IsBalanced returns 0 if children of a node are balanced,
-//  1 for left heavy, -1 for right heavy
-//  per AVL property: height_difference <= +/-1
+// GetTreeHeight helper return overall tree height
+func (t BinaryTree) GetTreeHeight() int {
+	// if t.root == nil {
+	// 	return -1
+	// }
+	// return t.root.height
+	return GetHeight(t.root)
+}
+
+// IsBalanced returns actual height imbalance
+//  0 if children of a node are equal,
+//  + for left heavy, - for right heavy
+//  per AVL property, balanced: height_difference <= +/-1
 func IsBalanced(n *Node) int {
 	if n == nil {
 		return 0
 	}
-	bal := GetHeight(n.left) - GetHeight(n.right)
-	if bal > 1 {
-		return 1
-	} else if bal < -1 {
-		return -1
-	}
-	return 0
+	return GetHeight(n.left) - GetHeight(n.right)
+
+	// // 1 for left heavy, -1 for right heavy
+	// bal := GetHeight(n.left) - GetHeight(n.right)
+	// if bal > 1 {
+	// 	return 1
+	// } else if bal < -1 {
+	// 	return -1
+	// }
+	// return 0
 }
 
-// RestoreAVLProperty of an inserted node, traversing upwards
-func RestoreAVLProperty(n *Node) {
+// FixHeight resets a node's height based on its current children
+func FixHeight(n *Node) {
+	r := GetHeight(n.right)
+	l := GetHeight(n.left)
+	if r > l {
+		n.height = r + 1
+	} else {
+		n.height = l + 1
+	}
+}
+
+// LeftRotate rotates a node with its right child
+//  returns new subtree root, n or its replacement
+func LeftRotate(n *Node) *Node {
+	if n == nil || n.right == nil {
+		return n // can't rotate left
+	}
+	y := n.right
+	y.parent = n.parent
+	n.parent = y
+	n.right = y.left
+	y.left = n
+	if y.parent != nil { // not tree root
+		if y.parent.left == n {
+			y.parent.left = y
+		} else if y.parent.right == n {
+			y.parent.right = y
+		}
+	}
+	FixHeight(n)
+	FixHeight(y) // needed?
+	return y
+}
+
+// RightRotate rotates a node with its left child
+//  returns new subtree root, n or its replacement
+func RightRotate(n *Node) *Node {
+	if n == nil || n.left == nil {
+		return n // can't rotate right
+	}
+	x := n.left
+	x.parent = n.parent
+	n.parent = x
+	n.left = x.right
+	x.right = n
+	if x.parent != nil { // not tree root
+		if x.parent.right == n {
+			x.parent.right = x
+		} else if x.parent.left == n {
+			x.parent.left = x
+		}
+	}
+	FixHeight(n)
+	FixHeight(x) // needed?
+	return x
+}
+
+// RestoreAVLProperty of an inserted node only
+//  returns n, or its replacement if rotated
+func RestoreAVLProperty(n *Node) *Node {
+	b := IsBalanced(n)
+	if b < -1 { // too right heavy, fix
+		if IsBalanced(n.right) > 0 {
+			// right child is left heavy so 2 rotations
+			RightRotate(n.right)
+		} // else right child is right heavy or balanced, so 1 rotation
+		return LeftRotate(n)
+	} else if b > 1 { // too left heavy, fix
+		if IsBalanced(n.left) < 0 {
+			// left child is right heavy so 2 rotations
+			LeftRotate(n.left)
+		} // else left child is left heavy or balanced, so 1 rotation
+		return RightRotate(n)
+	} // else AVL balanced (height of children <= +/-1 difference)
+	return n
+}
+
+// RestoreAVLPropertyTree of an inserted node, traversing upwards
+func RestoreAVLPropertyTree(n *Node) {
+	for currentNode := n; n != nil; n = n.parent {
+		currentNode = RestoreAVLProperty(currentNode)
+		// b := IsBalanced(currentNode)
+		// if b < -1 { // too right heavy, fix
+		// 	if IsBalanced(currentNode.right) > 0 {
+		// 		// right child is left heavy so 2 rotations
+		// 		RightRotate(currentNode.right)
+		// 	} // else right child is right heavy or balanced, so 1 rotation
+		// 	currentNode = LeftRotate(currentNode)
+		// } else if b > 1 { // too left heavy, fix
+		// 	if IsBalanced(currentNode.left) < 0 {
+		// 		// left child is right heavy so 2 rotations
+		// 		LeftRotate(currentNode.left)
+		// 	} // else left child is left heavy or balanced, so 1 rotation
+		// 	currentNode = RightRotate(currentNode)
+		// } // else AVL balanced (height of children <= +/-1 difference)
+	}
 }

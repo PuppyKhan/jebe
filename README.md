@@ -25,7 +25,7 @@ Follows pseudocode from "Introduction to Algorithms" by Cormen, Leiserson, Rives
 
 Binary Search Tree, order can be custom defined.
 
-Both recursive and nonrecursive methods given as n excercise, use the nonrecursive in practice. Use:
+Both recursive and nonrecursive methods given as an excercise, use the nonrecursive in practice. Use:
 - `Insert()` instead of `InsertRecursive()`
 - `InOrderTreeWalk()` instead of `InOrderTreeWalkRecursive()`
 - `Search()` instead of `SearchRecursive()`
@@ -44,6 +44,8 @@ AVL Sort using balanced Binary Search Tree
 ```go
 import "github.com/PuppyKhan/jebe/avl"
 ```
+
+Follows https://www.youtube.com/watch?v=FNeL18KsWPc
 
 ## Jebe meaning
 
