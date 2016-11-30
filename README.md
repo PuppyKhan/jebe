@@ -39,13 +39,17 @@ Follows pseudocode from "Introduction to Algorithms" by Cormen, Leiserson, Rives
 ### AVL
 
 AVL Sort using balanced Binary Search Tree
-(unfinished)
+
+Supports sorting, traversal, and priority queue functionality, on min and max
 
 ```go
 import "github.com/PuppyKhan/jebe/avl"
 ```
 
-Follows https://www.youtube.com/watch?v=FNeL18KsWPc
+Follows:
+- https://www.youtube.com/watch?v=FNeL18KsWPc
+- http://www.geeksforgeeks.org/avl-tree-set-2-deletion/
+- https://courses.cs.washington.edu/courses/cse332/10sp/lectures/lecture8.pdf
 
 ## Jebe meaning
 

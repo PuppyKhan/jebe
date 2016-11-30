@@ -15,14 +15,14 @@ type Node struct {
 }
 
 // PrioritizeTreeItem - custom comparison for prioritizing tree items
-//  basic sort would need "a < b" ("a > b" for hight to low)
+//  basic sort would need "a < b" ("a > b" for high to low)
 type PrioritizeTreeItem func(a, b Item) bool
 
 // EquivalenceTreeItem - custom comparison for equality of tree items, "a == b"
 //  needed for search
 type EquivalenceTreeItem func(a, b Item) bool
 
-// BinaryTree holds the root of the tree and its comparison function
+// BinaryTree holds the root of the tree and its comparison functions
 type BinaryTree struct {
 	root   *Node
 	lesser PrioritizeTreeItem
@@ -42,7 +42,6 @@ func MakeNode(val Item, p *Node) *Node {
 
 // Init sets both root node and comparison func
 func (t *BinaryTree) Init(root Item, a PrioritizeTreeItem, b EquivalenceTreeItem) {
-	// t.root = t.Add(root)
 	t.Insert(root)
 	if a == nil {
 		t.SetLTIntPrioritizeTreeItem()
@@ -103,14 +102,7 @@ func (t *BinaryTree) Insert(newValue Item) {
 	}
 
 	// update heights for AVL property
-	// TODO: entirely contain w fir property in seperate method?
-	// y starts as z's parent here from previous step
-	for h := z.height; y != nil; y = y.parent {
-		h++
-		if y.height < h {
-			y.height = h
-		}
-	}
+	FixAllHeights(y)
 
 	// now fix AVL property on inserted node & upwards
 	RestoreAVLPropertyTree(z)
@@ -220,7 +212,7 @@ func (t BinaryTree) Search(k Item, current *Node) *Node {
 }
 
 // GetMinimum finds lowest value
-func (t BinaryTree) GetMinimum(current *Node) *Node {
+func GetMinimum(current *Node) *Node {
 	x := current
 	for x != nil && x.left != nil {
 		x = x.left
@@ -228,13 +220,37 @@ func (t BinaryTree) GetMinimum(current *Node) *Node {
 	return x
 }
 
+// GetTreeMinimum finds lowest value of tree
+func (t BinaryTree) GetTreeMinimum() *Node {
+	return GetMinimum(t.root)
+}
+
+// PopTreeMinimum finds lowest value of tree
+func (t *BinaryTree) PopTreeMinimum() *Item {
+	n := GetMinimum(t.root)
+	t.Delete(n)
+	return &n.value
+}
+
 // GetMaximum finds highest value
-func (t BinaryTree) GetMaximum(current *Node) *Node {
+func GetMaximum(current *Node) *Node {
 	x := current
 	for x != nil && x.right != nil {
 		x = x.right
 	}
 	return x
+}
+
+// GetTreeMaximum finds highest value of tree
+func (t BinaryTree) GetTreeMaximum() *Node {
+	return GetMaximum(t.root)
+}
+
+// PopTreeMaximum finds lowest value of tree
+func (t *BinaryTree) PopTreeMaximum() *Item {
+	n := GetMaximum(t.root)
+	t.Delete(n)
+	return &n.value
 }
 
 // GetNext finds successor in order
@@ -244,7 +260,7 @@ func (t BinaryTree) GetNext(current *Node) *Node {
 		return nil
 	}
 	if x.right != nil {
-		return t.GetMinimum(x.right)
+		return GetMinimum(x.right)
 	}
 	y := x.parent
 	for y != nil && x == y.right {
@@ -261,7 +277,7 @@ func (t BinaryTree) GetPrevious(current *Node) *Node {
 		return nil
 	}
 	if x.left != nil {
-		return t.GetMaximum(x.left)
+		return GetMaximum(x.left)
 	}
 	y := x.parent
 	for y != nil && x == y.left {
@@ -272,9 +288,14 @@ func (t BinaryTree) GetPrevious(current *Node) *Node {
 }
 
 // Transplant switches branch u with v
-//  Does not update sub branches
+//  Updates v's parent link
+//  Does not update u, sub branches, heights, etc
+//  u must exist, v may be nil
 func (t *BinaryTree) Transplant(u, v *Node) {
-	if u.parent == nil {
+	if u == nil {
+		return // u must exist
+	}
+	if u.parent == nil { // only tree root has no parent
 		t.root = v
 	} else if u == u.parent.left {
 		u.parent.left = v
@@ -291,21 +312,63 @@ func (t *BinaryTree) Delete(z *Node) {
 	if z == nil {
 		return
 	}
-	if z.left == nil {
-		t.Transplant(z, z.right)
-	} else if z.right == nil {
-		t.Transplant(z, z.left)
-	} else {
-		y := t.GetMinimum(z.right)
+	var y, w *Node
+	if z.left == nil { // no or only right child
+		// use right child, even if nil
+		y = z.right // could be nil, don't ref members
+		t.Transplant(z, y)
+	} else if z.right == nil { // only left child
+		// use left child, not nil
+		y = z.left
+		t.Transplant(z, y)
+	} else { // both children present
+		y = GetMinimum(z.right)
+
 		if y.parent != z {
+			w = y.parent // for fixing heights later
 			t.Transplant(y, y.right)
 			y.right = z.right
-			y.right.parent = y
+			z.right.parent = y // could be z.right.parent at this point
 		}
 		t.Transplant(z, y)
 		y.left = z.left
 		y.left.parent = y
 	}
+
+	// fix heights
+	if w != nil {
+		// heights need to be checked from y's original parent on up
+		FixAllHeights(w)
+	} else {
+		// height only needs to be checked starting at y
+		FixAllHeights(y)
+	}
+
+	// Restore AVL property
+	// loop upwards
+	for cur := y; cur != nil; cur = cur.parent {
+		bal := IsBalanced(cur)
+		if bal < -1 { // too right heavy
+			if IsBalanced(cur.right) < 0 { // right right case
+				LeftRotate(cur)
+			} else { // right left case
+				RightRotate(cur.right)
+				LeftRotate(cur)
+			}
+		} else if bal > 1 { // too left heavy
+			if IsBalanced(cur.left) < 0 { // left right case
+				LeftRotate(cur.left)
+				RightRotate(cur)
+			} else { // left left case
+				RightRotate(cur)
+			}
+		}
+	}
+
+	// clean up z
+	z.left = nil
+	z.right = nil
+	z.parent = nil
 }
 
 // GetHeight returns height of node, including -1 for nil nodes
@@ -318,31 +381,18 @@ func GetHeight(n *Node) int {
 
 // GetTreeHeight helper return overall tree height
 func (t BinaryTree) GetTreeHeight() int {
-	// if t.root == nil {
-	// 	return -1
-	// }
-	// return t.root.height
 	return GetHeight(t.root)
 }
 
 // IsBalanced returns actual height imbalance
 //  0 if children of a node are equal,
 //  + for left heavy, - for right heavy
-//  per AVL property, balanced: height_difference <= +/-1
+//  per AVL property, balanced: result <= +/-1
 func IsBalanced(n *Node) int {
 	if n == nil {
 		return 0
 	}
 	return GetHeight(n.left) - GetHeight(n.right)
-
-	// // 1 for left heavy, -1 for right heavy
-	// bal := GetHeight(n.left) - GetHeight(n.right)
-	// if bal > 1 {
-	// 	return 1
-	// } else if bal < -1 {
-	// 	return -1
-	// }
-	// return 0
 }
 
 // FixHeight resets a node's height based on its current children
@@ -353,6 +403,13 @@ func FixHeight(n *Node) {
 		n.height = r + 1
 	} else {
 		n.height = l + 1
+	}
+}
+
+// FixAllHeights resets height of node and successive parents
+func FixAllHeights(n *Node) {
+	for currentNode := n; currentNode != nil; currentNode = currentNode.parent {
+		FixHeight(currentNode)
 	}
 }
 
@@ -426,19 +483,22 @@ func RestoreAVLProperty(n *Node) *Node {
 func RestoreAVLPropertyTree(n *Node) {
 	for currentNode := n; n != nil; n = n.parent {
 		currentNode = RestoreAVLProperty(currentNode)
-		// b := IsBalanced(currentNode)
-		// if b < -1 { // too right heavy, fix
-		// 	if IsBalanced(currentNode.right) > 0 {
-		// 		// right child is left heavy so 2 rotations
-		// 		RightRotate(currentNode.right)
-		// 	} // else right child is right heavy or balanced, so 1 rotation
-		// 	currentNode = LeftRotate(currentNode)
-		// } else if b > 1 { // too left heavy, fix
-		// 	if IsBalanced(currentNode.left) < 0 {
-		// 		// left child is right heavy so 2 rotations
-		// 		LeftRotate(currentNode.left)
-		// 	} // else left child is left heavy or balanced, so 1 rotation
-		// 	currentNode = RightRotate(currentNode)
-		// } // else AVL balanced (height of children <= +/-1 difference)
 	}
+}
+
+// Using AVL tree as a priority queue
+
+// Push - alias for Insert()
+func (t *BinaryTree) Push(key Item) {
+	t.Insert(key)
+}
+
+// Peek - alias for GetTreeMinimum()
+func (t BinaryTree) Peek() Item {
+	return t.GetTreeMinimum()
+}
+
+// Pop - alias for PopTreeMinimum()
+func (t *BinaryTree) Pop() Item {
+	return t.PopTreeMinimum()
 }
